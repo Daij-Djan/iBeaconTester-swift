@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>${EXECUTABLE_NAME}</string>
+	<key>CFBundleIdentifier</key>
+	<string>info.pich.${PRODUCT_NAME:rfc1034identifier}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>${PRODUCT_NAME}</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>Regions</key>
+	<array>
+		<dict>
+			<key>identifier</key>
+			<string>Test1</string>
+			<key>uuid</key>
+			<string>EEE50E93-9A8A-4A2F-98D2-EB4ADAB4A700</string>
+		</dict>
+		<dict>
+			<key>identifier</key>
+			<string>Test2</string>
+			<key>uuid</key>
+			<string>83E2C4FD-FE19-4E29-AE78-B91A52E77C00</string>
+			<key>major</key>
+			<string>258</string>
+			<key>minor</key>
+			<string>2</string>
+		</dict>
+	</array>
+	<key>RangeOnEnter</key>
+	<true/>
+	<key>NotifyOnEnter</key>
+	<false/>
+	<key>NotifyOnExit</key>
+	<true/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>detecting ibeacons</string>
+</dict>
+</plist>
