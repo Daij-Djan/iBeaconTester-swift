@@ -7,7 +7,7 @@
         <!--Navigation Controller-->
         <scene sceneID="cUi-kZ-frf">
             <objects>
-                <navigationController id="rS3-R9-Ivy" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="insert navigation controller" id="rS3-R9-Ivy" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="yXu-0R-QUA">
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -27,6 +27,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="480" height="480"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                         <prototypes>
                             <tableViewCell contentMode="scaleToFill" ambiguous="YES" selectionStyle="blue" accessoryType="checkmark" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="CellWithMajorMinor" editingAccessoryType="disclosureIndicator" rowHeight="124" id="m0d-ak-lc9">
                                 <rect key="frame" x="0.0" y="86" width="320" height="44"/>
@@ -161,12 +162,28 @@
                     <navigationItem key="navigationItem" title="Master" id="tQt-TN-PWz"/>
                     <connections>
                         <segue destination="z3g-FV-rwm" kind="show" identifier="EditRegion" id="edK-6C-Sou"/>
-                        <segue destination="z3g-FV-rwm" kind="presentation" identifier="InsertRegion" id="nHl-dg-FYR"/>
+                        <segue destination="Uw6-Mq-VbS" kind="presentation" identifier="InsertRegion" id="fHO-la-052"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6Cn-md-YlS" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="620" y="64"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="V57-4C-P3z">
+            <objects>
+                <navigationController id="Uw6-Mq-VbS" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="foe-Dz-hdE">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="z3g-FV-rwm" kind="relationship" relationship="rootViewController" id="TYv-Qj-mVZ"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="K0N-r3-GdI" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1196" y="-565"/>
         </scene>
         <!--Detail View Controller - Region-->
         <scene sceneID="bo5-ib-tbV">
@@ -176,6 +193,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="480" height="480"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <simulatedOrientationMetrics key="simulatedOrientationMetrics" orientation="landscapeRight"/>
                         <sections>
                             <tableViewSection id="OZ4-L6-Jnf">
                                 <cells>
@@ -196,6 +214,9 @@
                                                     <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="titleChanged:" destination="z3g-FV-rwm" eventType="editingDidEnd" id="GIY-RD-8wC"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                         </tableViewCellContentView>
@@ -212,10 +233,17 @@
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <switch opaque="NO" tag="10" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="right" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c3f-c0-a5T">
-                                                    <rect key="frame" x="411" y="0.0" width="51" height="31"/>
+                                                <switch opaque="NO" tag="10" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="right" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c3f-c0-a5T">
+                                                    <rect key="frame" x="428" y="3" width="51" height="31"/>
+                                                    <connections>
+                                                        <action selector="enabledChanged:" destination="z3g-FV-rwm" eventType="valueChanged" id="SMF-04-mrA"/>
+                                                    </connections>
                                                 </switch>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="c3f-c0-a5T" secondAttribute="trailing" constant="3" id="4f1-Zd-yUl"/>
+                                                <constraint firstAttribute="centerY" secondItem="c3f-c0-a5T" secondAttribute="centerY" id="eqf-bE-eqH"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                 </cells>
@@ -238,6 +266,9 @@
                                                     <rect key="frame" x="62" y="0.0" width="418" height="36"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="uuidChanged:" destination="z3g-FV-rwm" eventType="editingDidEnd" id="4pU-Qj-3GX"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                         </tableViewCellContentView>
@@ -258,6 +289,9 @@
                                                     <rect key="frame" x="62" y="0.0" width="418" height="36"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="majorChanged:" destination="z3g-FV-rwm" eventType="editingDidEnd" id="PUH-mf-8iA"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                         </tableViewCellContentView>
@@ -278,6 +312,9 @@
                                                     <rect key="frame" x="62" y="0.0" width="418" height="36"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="minorChanged:" destination="z3g-FV-rwm" eventType="editingDidEnd" id="AB6-fw-PK4"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                         </tableViewCellContentView>
@@ -290,7 +327,7 @@
                             <outlet property="delegate" destination="z3g-FV-rwm" id="G6B-19-qul"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Details" id="CP4-GW-jkr"/>
+                    <navigationItem key="navigationItem" title="Edit Region" id="CP4-GW-jkr"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fee-9B-eRP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -298,6 +335,6 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="nHl-dg-FYR"/>
+        <segue reference="edK-6C-Sou"/>
     </inferredMetricsTieBreakers>
 </document>

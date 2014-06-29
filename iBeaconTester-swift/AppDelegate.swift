@@ -19,9 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         let table = navi.topViewController as MasterViewController
         return table
     }()
-    
     @lazy var locationManager = CLLocationManager()
-    
     var enteredRegions = Array<String>()
     var notifyOnEnter = false
     var notifyOnExit = false
@@ -52,8 +50,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
             self.rangeOnEnter = rangeOnEnter.boolValue
         }
         
-        //start it
-        self.startMonitoringAllRegions()
+        //start it - wait for authDidChange delegate
+        //self.startMonitoringIfAuthorized()
         
         return true
     }
@@ -134,23 +132,80 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         }
     }
     
+    func locationManager(manager: CLLocationManager!, didChangeAuthorizationStatus status: CLAuthorizationStatus) {
+        self.startMonitoringIfAuthorized()
+    }
+    
     //#pragma mark region management
 
-    func startMonitoringAllRegions() {
+    var regionsToMonitor : Array<Dictionary<String,AnyObject>>? {
+    get {
         //read what we have to monitor
-        let regionsToMonitor = NSBundle.mainBundle().infoDictionary["Regions"] as Array<Dictionary<String,AnyObject>>
+        if let regionsToMonitorD: AnyObject! = NSUserDefaults.standardUserDefaults().objectForKey("Regions") {
+            return regionsToMonitorD as Array<Dictionary<String,AnyObject>>!
+        }
+        
+        if let regionsToMonitorB: AnyObject! = NSBundle.mainBundle().objectForInfoDictionaryKey("Regions") {
+            return regionsToMonitorB as Array<Dictionary<String,AnyObject>>!
+        }
+        
+        return nil
+    }
+    set {
+        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: "Regions")
+        NSUserDefaults.standardUserDefaults().synchronize()
+    }
+    }
+    
+    func startMonitoringIfAuthorized() {
+        let authStatus = CLLocationManager.authorizationStatus()
+        switch(authStatus) {
+        case CLAuthorizationStatus.Denied:
+            var alert = UIAlertController(title: "", message: "Not authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+        case CLAuthorizationStatus.Restricted:
+            var alert = UIAlertController(title: "", message: "Access restricted. Not fully authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+        case CLAuthorizationStatus.AuthorizedWhenInUse:
+            var alert = UIAlertController(title: "", message: "Only authorized to look for beacons while app is in use", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+            fallthrough
+        case CLAuthorizationStatus.NotDetermined:
+            //do
+            fallthrough
+        case CLAuthorizationStatus.Authorized:
+            self.startMonitoringAllRegions()
+        }
+    }
+    
+    func startMonitoringAllRegions() {
         var knownRegions = Array<CLBeaconRegion>()
         
         //enumerate through
-        for regionToMonitor in regionsToMonitor {
+        let regions = self.regionsToMonitor;
+        assert(regions, "we should have the RegionsToMonitor here");
+        for regionToMonitor in regions! {
             //make CLRegion
             if let clRegion = CLBeaconRegion.fromDictionary(regionToMonitor) {
+                //add it
+                knownRegions.append(clRegion)
+
+//                //dont monitor dupes
+//                let monitoredRegionsSet = self.locationManager.monitoredRegions
+//                let monitoredRegions = monitoredRegionsSet.allObjects as Array<CLBeaconRegion>
+//                let identifiers = monitoredRegions.getKeyPath("identifier") as Array<String>
+//                if(identifiers.contains(clRegion.identifier)) {
+//                    continue
+//                }
+                
                 clRegion.notifyEntryStateOnDisplay = true
                 
                 //monitor
                 println("start monitoring \(clRegion.identifier) :: \(clRegion.proximityUUID.UUIDString) \(clRegion.major) \(clRegion.minor)")
                 self.locationManager.startMonitoringForRegion(clRegion)
-                knownRegions.append(clRegion)
             }
         }
         
@@ -167,22 +222,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     //#pragma mark call backs left to do
     
     func addNewRegion(region: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(region.identifier)")
+        println(" \(region.toDictionary())")
         return true
     }
     
     func editKnownRegion(oldRegion: CLBeaconRegion, newRegion: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(newRegion.identifier)")
+        println(" \(newRegion.toDictionary())")
         return true
     }
 
     func removeKnownRegion(region: CLBeaconRegion) -> Bool {
-        println(" \(region.identifier)")
+        println(" \(region.toDictionary())")
         return true
     }
 
     func enableKnownRegion(region: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(region.identifier)")
+        println(" \(region.toDictionary())")
         return true
     }
 }

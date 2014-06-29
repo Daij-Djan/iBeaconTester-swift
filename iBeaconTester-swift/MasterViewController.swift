@@ -59,12 +59,23 @@ class MasterViewController: UITableViewController {
             let detailVC = segue.destinationViewController as DetailViewController
             detailVC.region = region
             detailVC.enabled = isMonitored
+            detailVC.dismissHandler = self.regionEdited(region)
         }
         else if segue.identifier == "InsertRegion" {
-            let detailVC = segue.destinationViewController as DetailViewController
+            let sel: Selector = Selector("dismiss")
+            var doneButton = UIBarButtonItem(barButtonSystemItem: UIBarButtonSystemItem.Done, target: self, action:sel)
+            let naviVC = segue.destinationViewController as UINavigationController
+            let detailVC = naviVC.topViewController as DetailViewController
+            detailVC.navigationItem.title = "New Region"
+            detailVC.navigationItem.rightBarButtonItem = doneButton
             detailVC.titleEditable = true
             detailVC.enabled = true
+            detailVC.dismissHandler = self.regionAdded;
         }
+    }
+    
+    func dismiss() {
+        self.dismissViewControllerAnimated(true, completion: nil)
     }
     
     // #pragma mark - Table View
@@ -118,7 +129,7 @@ class MasterViewController: UITableViewController {
         let isMonitored = self.monitoredRegionIdentifiers.contains(identifier)
         cell.accessoryType = isMonitored ? UITableViewCellAccessoryType.Checkmark : UITableViewCellAccessoryType.None
         
-        cell.backgroundColor = UIColor.lightGrayColor();
+        cell.backgroundColor = UIColor(white: 0.9, alpha: 1);
         if(isMonitored) {
             //make it green if entered
             let isEntered = self.enteredRegionIdentifiers.contains(identifier)
@@ -153,6 +164,22 @@ class MasterViewController: UITableViewController {
 //        }
 
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    }
+    
+    //#pragma mark callbacks
+
+    func regionAdded(newRegion:CLBeaconRegion, enabled:Bool) -> Void {
+        self.addNewRegion!(newRegion, enabled)
+    }
+
+    func regionEdited(oldRegion:CLBeaconRegion) -> (CLBeaconRegion, Bool) -> Void {
+        func callback(newRegion:CLBeaconRegion, enabled:Bool) -> Void {
+            //let callback do it all
+            assert(self.editKnownRegion, "self.editKnownRegion must be non-nil")
+            self.editKnownRegion!(oldRegion, newRegion, enabled)
+        }
+        
+        return callback
     }
 }
 

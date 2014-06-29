@@ -15,15 +15,27 @@ extension CLBeaconRegion {
         }
         
         //read dict
-        var uuidString:String = dictionary["uuid"] as String!
-        let identifier:String = dictionary["identifier"] as String!
+        var uuidString:AnyObject! = dictionary["uuid"]
+        let identifier:AnyObject! = dictionary["identifier"]
         let major: Int? = dictionary["major"] ? dictionary["major"]!.integerValue : nil
         let minor: Int? = dictionary["minor"] ? dictionary["minor"]!.integerValue : nil
-        
-        let uuid : NSUUID? = NSUUID(UUIDString: uuidString)
-        if(!uuid) {
+
+        if(!uuidString) {
+            println("region needs a uuid")
             return nil
         }
+        
+        let uuid : NSUUID? = NSUUID(UUIDString: uuidString as String)
+        if(!uuid) {
+            println("region needs a valid uuid")
+            return nil
+        }
+        
+        if(!identifier) {
+            println("region needs an identifier")
+            return nil
+        }
+        let id = identifier as String
         
         //make CLRegion
         var clRegion: CLBeaconRegion
@@ -32,19 +44,32 @@ extension CLBeaconRegion {
                 clRegion = CLBeaconRegion(proximityUUID: uuid,
                     major: CLBeaconMajorValue(ma),
                     minor: CLBeaconMinorValue(mi),
-                    identifier: identifier)
+                    identifier: id)
             }
             else {
                 clRegion = CLBeaconRegion(proximityUUID: uuid,
                     major: CLBeaconMajorValue(ma),
-                    identifier: identifier)
+                    identifier: id)
             }
         }
         else {
             clRegion = CLBeaconRegion(proximityUUID: uuid,
-                identifier: identifier)
+                identifier: id)
         }
         
         return clRegion;
+    }
+
+    func toDictionary() -> Dictionary<String, AnyObject> {
+        var dict = Dictionary<String, AnyObject>()
+        dict["uuid"] = self.proximityUUID;
+        dict["identifier"] = self.identifier;
+        if self.major {
+            dict["major"] = self.major;
+        }
+        if self.minor {
+            dict["minor"] = self.identifier;
+        }
+        return dict
     }
 }

@@ -12,7 +12,6 @@
 		B4B143461942572400237852 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B4B1433E1942572400237852 /* Main.storyboard */; };
 		B4B143471942572400237852 /* CLBeaconRegionUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B143401942572400237852 /* CLBeaconRegionUtils.swift */; };
 		B4B143481942572400237852 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B4B143411942572400237852 /* Images.xcassets */; };
-		B4B143491942572400237852 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B4B143421942572400237852 /* Info.plist */; };
 		B4B1434A1942572400237852 /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B143431942572400237852 /* MasterViewController.swift */; };
 		B4B1434C194257A700237852 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4B1434B194257A700237852 /* DetailViewController.swift */; };
 /* End PBXBuildFile section */
@@ -102,6 +101,7 @@
 				TargetAttributes = {
 					B487A570193D29D70093657F = {
 						CreatedOnToolsVersion = 6.0;
+						DevelopmentTeam = CM9SK6HD94;
 					};
 				};
 			};
@@ -130,7 +130,6 @@
 			files = (
 				B4B143461942572400237852 /* Main.storyboard in Resources */,
 				B4B143481942572400237852 /* Images.xcassets in Resources */,
-				B4B143491942572400237852 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,9 +244,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "iBeaconTester-swift/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "ibeaconTester-swift";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -256,9 +258,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = "iBeaconTester-swift/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "ibeaconTester-swift";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

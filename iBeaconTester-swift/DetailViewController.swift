@@ -29,11 +29,18 @@ class DetailViewController: UITableViewController {
     }
     }
 
-    var editKnownRegion: ((CLBeaconRegion, CLBeaconRegion, Bool) -> Bool)?
-
+    var dismissHandler: ((CLBeaconRegion, Bool) -> Void)?
+    
+    override func viewDidDisappear(animated: Bool) {
+        if self.dismissHandler {
+            let r = self.region
+            assert(r, "region must be there")
+            self.dismissHandler!(r!, self.enabled)
+        }
+    }
     override func tableView(tableView: UITableView!, willDisplayCell cell: UITableViewCell!, forRowAtIndexPath indexPath: NSIndexPath!) {
         //set value
-        if let r = region {
+        if let r = self.region {
             switch(cell.tag) {
             case 1:
                 let textfield = cell.viewWithTag(10) as UITextField
@@ -59,9 +66,59 @@ class DetailViewController: UITableViewController {
         if cell.tag == 1 {
             let textfield = cell.viewWithTag(10) as UITextField
             println(self.titleEditable)
-            textfield.textColor = self.titleEditable ? UIColor.blackColor() : UIColor.grayColor();
+            textfield.textColor = self.titleEditable ? UIColor.blackColor() : UIColor.grayColor()
             textfield.enabled = self.titleEditable
         }
+        
+        //update can monitor
+        if cell.tag == 5 {
+            let canMonitor = CLLocationManager.isMonitoringAvailableForClass(CLBeaconRegion)
+            cell.backgroundColor = UIColor(white: canMonitor ? 1 : 0.9, alpha: 1)
+        }
+    }
+    
+    //#pragma mark: IB
+    
+    @IBAction func titleChanged(sender : AnyObject) {
+        var dict = self.region ? self.region!.toDictionary() : Dictionary<String, AnyObject>()
+        var string = sender.text
+        if(!string) {
+            string = ""
+        }
+        dict["identifier"] = string
+        self.region = CLBeaconRegion.fromDictionary(dict)
+    }
+    @IBAction func enabledChanged(sender : UISwitch) {
+        self.enabled = sender.on
+    }
+    @IBAction func uuidChanged(sender : UITextField) {
+        var dict = self.region ? self.region!.toDictionary() : Dictionary<String, AnyObject>()
+        let string = sender.text
+        let uuid = NSUUID(UUIDString: sender.text)
+        dict["identifier"] = uuid
+        self.region = CLBeaconRegion.fromDictionary(dict)
+    }
+    @IBAction func majorChanged(sender : UITextField) {
+        var dict = self.region ? self.region!.toDictionary() : Dictionary<String, AnyObject>()
+        var string = sender.text
+        if(!string) {
+            string = ""
+        }
+        if(!string.isEmpty && string.toInt() >= 0) {
+            dict["major"] = NSNumber(integer: string.toInt()!)
+        }
+        self.region = CLBeaconRegion.fromDictionary(dict)
+    }
+    @IBAction func minorChanged(sender : UITextField) {
+        var dict = self.region ? self.region!.toDictionary() : Dictionary<String, AnyObject>()
+        var string = sender.text
+        if(!string) {
+            string = ""
+        }
+        if(!string.isEmpty && string.toInt() >= 0) {
+            dict["minor"] = NSNumber(integer: string.toInt()!)
+        }
+        self.region = CLBeaconRegion.fromDictionary(dict)
     }
 }
 
