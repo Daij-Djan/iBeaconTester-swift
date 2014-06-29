@@ -10,10 +10,6 @@ import CoreLocation
 
 extension CLBeaconRegion {
     class func fromDictionary(dictionary:Dictionary<String, AnyObject>) -> CLBeaconRegion? {
-        if(!dictionary["uuid"]) {
-            return nil;
-        }
-        
         //read dict
         var uuidString:AnyObject! = dictionary["uuid"]
         let identifier:AnyObject! = dictionary["identifier"]
@@ -25,17 +21,18 @@ extension CLBeaconRegion {
             return nil
         }
         
-        let uuid : NSUUID? = NSUUID(UUIDString: uuidString as String)
-        if(!uuid) {
-            println("region needs a valid uuid")
-            return nil
-        }
-        
         if(!identifier) {
             println("region needs an identifier")
             return nil
         }
         let id = identifier as String
+
+        let uuid : NSUUID? = NSUUID(UUIDString: uuidString as String)
+        if(!uuid) {
+            println("region needs a valid uuid")
+            return nil
+        }
+        println(uuid!.UUIDString)
         
         //make CLRegion
         var clRegion: CLBeaconRegion
@@ -62,13 +59,13 @@ extension CLBeaconRegion {
 
     func toDictionary() -> Dictionary<String, AnyObject> {
         var dict = Dictionary<String, AnyObject>()
-        dict["uuid"] = self.proximityUUID;
+        dict["uuid"] = self.proximityUUID.UUIDString;
         dict["identifier"] = self.identifier;
         if self.major {
             dict["major"] = self.major;
         }
         if self.minor {
-            dict["minor"] = self.identifier;
+            dict["minor"] = self.minor;
         }
         return dict
     }

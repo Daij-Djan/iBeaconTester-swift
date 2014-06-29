@@ -24,7 +24,111 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
     var notifyOnEnter = false
     var notifyOnExit = false
     var rangeOnEnter = false
+
+    var knownRegionDicts : Array<Dictionary<String,AnyObject>>? {
+    get {
+        //read what we have to monitor
+        if let knownRegionDictsD: AnyObject! = NSUserDefaults.standardUserDefaults().objectForKey("Regions") {
+            assert(self.monitoredRegionIdentifiers, "when regions are there, monitoredIdentifiers should be too")
+            return knownRegionDictsD as Array<Dictionary<String,AnyObject>>!
+        }
+        
+        if let knownRegionDictsB: AnyObject! = NSBundle.mainBundle().objectForInfoDictionaryKey("Regions") {
+            return knownRegionDictsB as Array<Dictionary<String,AnyObject>>!
+        }
+        
+        return nil
+    }
+    set {
+        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: "Regions")
+        NSUserDefaults.standardUserDefaults().synchronize()
+    }
+    }
     
+    var monitoredRegionIdentifiers : Array<String>? {
+    get {
+        if let monitoredRegionIdentifiersD: AnyObject! = NSUserDefaults.standardUserDefaults().objectForKey("MonitoredIDs") {
+            println("\(monitoredRegionIdentifiersD)")
+            return monitoredRegionIdentifiersD as Array<String>!
+        }
+        
+        return nil
+    }
+    set {
+        println(newValue)
+        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: "MonitoredIDs")
+        NSUserDefaults.standardUserDefaults().synchronize()
+    }
+    }
+    
+    func startMonitoringIfAuthorized() {
+        let authStatus = CLLocationManager.authorizationStatus()
+        switch(authStatus) {
+        case CLAuthorizationStatus.Denied:
+            var alert = UIAlertController(title: "", message: "Not authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+        case CLAuthorizationStatus.Restricted:
+            var alert = UIAlertController(title: "", message: "Access restricted. Not fully authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+        case CLAuthorizationStatus.AuthorizedWhenInUse:
+            var alert = UIAlertController(title: "", message: "Only authorized to look for beacons while app is in use", preferredStyle: UIAlertControllerStyle.Alert)
+            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
+            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
+            fallthrough
+        case CLAuthorizationStatus.NotDetermined:
+            //do
+            fallthrough
+        case CLAuthorizationStatus.Authorized:
+            self.startMonitoringAllRegions()
+        }
+    }
+    
+    func startMonitoringAllRegions() {
+        var knownRegions = Array<CLBeaconRegion>()
+        var monitoredIdentifiers = self.monitoredRegionIdentifiers
+        
+        //enumerate through
+        let regions = self.knownRegionDicts;
+        assert(regions, "we should have the knownRegionDicts here");
+        for regionToMonitor in regions! {
+            //make CLRegion
+            if let clRegion = CLBeaconRegion.fromDictionary(regionToMonitor) {
+                //add it
+                knownRegions.append(clRegion)
+                
+                //skip turned off
+                if monitoredRegionIdentifiers && !monitoredRegionIdentifiers!.contains(clRegion.identifier) {
+                    var uuidString:AnyObject! = regionToMonitor["uuid"]
+                    println("skip region \(uuidString) as it isnt enabled")
+                    continue;
+                }
+                
+                clRegion.notifyEntryStateOnDisplay = true
+                
+                //monitor
+                println("start monitoring \(clRegion.identifier) :: \(clRegion.proximityUUID.UUIDString) \(clRegion.major) \(clRegion.minor)")
+                self.locationManager.startMonitoringForRegion(clRegion)
+            }
+        }
+        
+        //tell UI the initialy known regions
+        self.ui.knownRegions = knownRegions
+        
+        //give it the monitored ones
+        if(!monitoredIdentifiers) {
+            let helpIdentifiers = knownRegions.getKeyPath("identifier") as Array<String>
+            self.ui.monitoredRegionIdentifiers = helpIdentifiers
+        }
+        else {
+            self.ui.monitoredRegionIdentifiers = monitoredIdentifiers!
+        }
+    }
+}
+
+//MARK: UIApplicationDelegate
+extension AppDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: NSDictionary?) -> Bool {
         //register for local notifs
         let settings = UIUserNotificationSettings(forTypes: UIUserNotificationType.Alert, categories: nil)
@@ -61,7 +165,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
         self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
     }
+    
+    func applicationWillTerminate(application: UIApplication!) {
+        
+    }
+}
 
+//MARK: CLLocationManagerDelegate
+extension AppDelegate {
     func locationManager(manager: CLLocationManager!, didDetermineState state: CLRegionState, forRegion region: CLBeaconRegion!) {
         var txt: String?
         var showNotification = false
@@ -136,108 +247,92 @@ class AppDelegate: UIResponder, UIApplicationDelegate, CLLocationManagerDelegate
         self.startMonitoringIfAuthorized()
     }
     
-    //#pragma mark region management
+}
 
-    var regionsToMonitor : Array<Dictionary<String,AnyObject>>? {
-    get {
-        //read what we have to monitor
-        if let regionsToMonitorD: AnyObject! = NSUserDefaults.standardUserDefaults().objectForKey("Regions") {
-            return regionsToMonitorD as Array<Dictionary<String,AnyObject>>!
-        }
-        
-        if let regionsToMonitorB: AnyObject! = NSBundle.mainBundle().objectForInfoDictionaryKey("Regions") {
-            return regionsToMonitorB as Array<Dictionary<String,AnyObject>>!
-        }
-        
-        return nil
-    }
-    set {
-        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: "Regions")
-        NSUserDefaults.standardUserDefaults().synchronize()
-    }
-    }
-    
-    func startMonitoringIfAuthorized() {
-        let authStatus = CLLocationManager.authorizationStatus()
-        switch(authStatus) {
-        case CLAuthorizationStatus.Denied:
-            var alert = UIAlertController(title: "", message: "Not authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
-        case CLAuthorizationStatus.Restricted:
-            var alert = UIAlertController(title: "", message: "Access restricted. Not fully authorized to look for beacons. Please change in the settings app", preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
-        case CLAuthorizationStatus.AuthorizedWhenInUse:
-            var alert = UIAlertController(title: "", message: "Only authorized to look for beacons while app is in use", preferredStyle: UIAlertControllerStyle.Alert)
-            alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil))
-            self.window!.rootViewController.presentViewController(alert, animated: true, completion: nil)
-            fallthrough
-        case CLAuthorizationStatus.NotDetermined:
-            //do
-            fallthrough
-        case CLAuthorizationStatus.Authorized:
-            self.startMonitoringAllRegions()
-        }
-    }
-    
-    func startMonitoringAllRegions() {
-        var knownRegions = Array<CLBeaconRegion>()
-        
-        //enumerate through
-        let regions = self.regionsToMonitor;
-        assert(regions, "we should have the RegionsToMonitor here");
-        for regionToMonitor in regions! {
-            //make CLRegion
-            if let clRegion = CLBeaconRegion.fromDictionary(regionToMonitor) {
-                //add it
-                knownRegions.append(clRegion)
-
-//                //dont monitor dupes
-//                let monitoredRegionsSet = self.locationManager.monitoredRegions
-//                let monitoredRegions = monitoredRegionsSet.allObjects as Array<CLBeaconRegion>
-//                let identifiers = monitoredRegions.getKeyPath("identifier") as Array<String>
-//                if(identifiers.contains(clRegion.identifier)) {
-//                    continue
-//                }
-                
-                clRegion.notifyEntryStateOnDisplay = true
-                
-                //monitor
-                println("start monitoring \(clRegion.identifier) :: \(clRegion.proximityUUID.UUIDString) \(clRegion.major) \(clRegion.minor)")
-                self.locationManager.startMonitoringForRegion(clRegion)
-            }
-        }
-        
-        //tell UI the initialy known regions
+//MARK: callbacks from UI
+extension AppDelegate {
+    func addNewRegion(region: CLBeaconRegion, enabled: Bool) -> Bool {
+        //update the UI with the now known regions
+        var knownRegions = self.ui.knownRegions
+        knownRegions.append(region)
         self.ui.knownRegions = knownRegions
         
-        //give it the monitored ones
-        let monitoredRegionsSet = self.locationManager.monitoredRegions
-        let monitoredRegions = monitoredRegionsSet.allObjects as Array<CLBeaconRegion>
-        let identifiers = monitoredRegions.getKeyPath("identifier") as Array<String>
-        self.ui.monitoredRegionIdentifiers = identifiers
-    }
-    
-    //#pragma mark call backs left to do
-    
-    func addNewRegion(region: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(region.toDictionary())")
+        //update the settings
+        let knownRegionsDicts = knownRegions.getKeyPath("toDictionary") as Array<Dictionary<String, AnyObject>>
+        self.knownRegionDicts = knownRegionsDicts
+        
+        //update its state
+        self.enableKnownRegion(region, enabled: enabled)
+        
         return true
     }
     
     func editKnownRegion(oldRegion: CLBeaconRegion, newRegion: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(newRegion.toDictionary())")
+        //disable old
+        self.locationManager.stopMonitoringForRegion(oldRegion)
+        
+        //update the UI with the now known regions
+        var knownRegions = self.ui.knownRegions
+        let index = knownRegions.indexOf(oldRegion)
+        assert(index, "oldRegion must be in array")
+        knownRegions[index!] = newRegion
+        self.ui.knownRegions = knownRegions
+        
+        //update the settings
+        let knownRegionsDicts = knownRegions.getKeyPath("toDictionary") as Array<Dictionary<String, AnyObject>>
+        self.knownRegionDicts = knownRegionsDicts
+        
+        //update its state
+        self.enableKnownRegion(newRegion, enabled: enabled)
+        
         return true
     }
 
     func removeKnownRegion(region: CLBeaconRegion) -> Bool {
-        println(" \(region.toDictionary())")
+        //update its state
+        self.enableKnownRegion(region, enabled: false)
+
+        //update the UI with the now known regions
+        var knownRegions = self.ui.knownRegions
+        let index = knownRegions.indexOf(region)
+        assert(index, "region must be in array")
+        knownRegions.removeAtIndex(index!)
+        self.ui.knownRegions = knownRegions
+        
+        //update the settings
+        let knownRegionsDicts = knownRegions.getKeyPath("toDictionary") as Array<Dictionary<String, AnyObject>>
+        self.knownRegionDicts = knownRegionsDicts
+        
         return true
     }
 
     func enableKnownRegion(region: CLBeaconRegion, enabled: Bool) -> Bool {
-        println(" \(region.toDictionary())")
+        //monitor it or stop it as needed
+        self.locationManager.stopMonitoringForRegion(region)
+        if enabled {
+            println("start monitoring \(region.identifier) :: \(region.proximityUUID.UUIDString) \(region.major) \(region.minor)")
+            self.locationManager.startMonitoringForRegion(region)
+        }
+
+        //update the UI with the now monitored ids
+        var identifiers = self.ui.monitoredRegionIdentifiers
+        println("\(identifiers)")
+        if enabled {
+            if !identifiers.contains(region.identifier) {
+                identifiers.append(region.identifier)
+            }
+        }
+        else {
+            if identifiers.contains(region.identifier) {
+                let idx = identifiers.indexOf(region.identifier)
+                identifiers.removeAtIndex(idx!)
+            }
+        }
+        self.ui.monitoredRegionIdentifiers = identifiers
+        
+        //update the settings
+        self.monitoredRegionIdentifiers = identifiers
+
         return true
     }
 }
